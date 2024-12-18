@@ -5,6 +5,7 @@ import java.util.List;
 
 import guestbook.dao.GuestbookDao;
 import guestbook.vo.GuestbookVo;
+import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -16,11 +17,42 @@ public class GuestBookServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 
 	protected void doGet(jakarta.servlet.http.HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		request.setCharacterEncoding("utf-8");
+		
 		String action = request.getParameter("a");
-		if("list".equals(action)) {
+		
+		if("add".equals(action)) {
+			String name = request.getParameter("name");
+			String password = request.getParameter("password");
+			String contents = request.getParameter("contents");
 			
-		} else if("add".equals(action)) {
+			GuestbookVo vo = new GuestbookVo();
+			vo.setName(name);
+			vo.setPassword(password);
+			vo.setContents(contents);
+			
+			new GuestbookDao().insert(vo);
+						
+			response.sendRedirect("/guestbook02/gb");
+			
+		} else if("deleteform".equals(action)) {			
+			RequestDispatcher rd = request.getRequestDispatcher("/WEB-INF/views/deleteform.jsp");
+			rd.forward(request, response);
+			
+		} else if("delete".equals(action)) {
+			Long id = Long.parseLong(request.getParameter("id"));
+			String password = request.getParameter("password");
+			
+			new GuestbookDao().deleteByIdAndPassword(id, password);
+			
+			response.sendRedirect("/guestbook02/gb");
+			
+		} else {
 			List<GuestbookVo> list = new GuestbookDao().findAll();
+			request.setAttribute("list", list);
+			
+			RequestDispatcher rd = request.getRequestDispatcher("/WEB-INF/views/index.jsp");
+			rd.forward(request, response); // 위의 list를 포함한 jsp로 넘어간다.
 		}
 	}
 
